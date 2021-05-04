@@ -1,7 +1,14 @@
 <template>
   <svg id="container" viewBox="0 0 500 500">
-    <line class="link" v-for="(link, index) in links" :key="index" />
-    <circle class="node" v-for="node in nodes" :key="node.id" />
+    <g>
+      <line class="link" v-for="(link, index) in links" :key="index" />
+    </g>
+    <g>
+      <g class="node" v-for="node in nodes" :key="node.id">
+        <circle class="node-circle" :class="'node-' + node.type" r="12" />
+        <text class="node-text" x="15" y="3">{{ node.id }}</text>
+      </g>
+    </g>
   </svg>
 </template>
 
@@ -14,10 +21,16 @@ export default {
     return {
       width: 500,
       height: 500,
-      nodes: [{ id: 'FatSmaug' }, { id: 'DonCorleone' }, { id: 'Albundy' }],
+      nodes: [
+        { id: 'FatSmaug', type: 'backend' },
+        { id: 'DonCorleone', type: 'frontend' },
+        { id: 'Albundy', type: 'frontend' },
+        { id: 'Gandalf', type: 'backend' },
+      ],
       links: [
-        { source: 'FatSmaug', target: 'Albundy' },
-        { source: 'FatSmaug', target: 'DonCorleone' },
+        { source: 'Gandalf', target: 'DonCorleone' },
+        { source: 'Gandalf', target: 'Albundy' },
+        { source: 'Gandalf', target: 'FatSmaug' },
       ],
     }
   },
@@ -27,22 +40,7 @@ export default {
   methods: {
     generateGraph() {
       const svg = d3.select('#container')
-      const node = svg
-        .selectAll('.node')
-        .data(this.nodes)
-        .join('circle')
-        .attr('r', 12)
-
-      node
-        .append('text')
-        .attr('x', 8)
-        .attr('y', '0.31em')
-        .text((d) => d.id)
-        .clone(true)
-        .lower()
-        .attr('fill', 'none')
-        .attr('stroke', 'white')
-        .attr('stroke-width', 3)
+      const node = svg.selectAll('.node').data(this.nodes).join('g')
 
       const link = svg.selectAll('.link').data(this.links).join('line')
 
@@ -74,7 +72,9 @@ export default {
           .attr('y1', (d) => d.source.y)
           .attr('x2', (d) => d.target.x)
           .attr('y2', (d) => d.target.y)
-        node.attr('cx', (d) => d.x).attr('cy', (d) => d.y)
+
+        node.attr('transform', (d) => `translate(${d.x},${d.y})`)
+        // node.attr('cx', (d) => d.x).attr('cy', (d) => d.y)
       }
 
       function click(event, d) {
@@ -115,11 +115,22 @@ export default {
   stroke-width: 1.5px;
 }
 
-.node {
+.node-circle {
   cursor: move;
   fill: #ccc;
   stroke: #000;
   stroke-width: 1.5px;
-  z-index: 2;
+}
+
+.node-text {
+  font-size: 12px;
+}
+
+.node-frontend {
+  fill: darkslategrey;
+}
+
+.node-backend {
+  fill: darkorchid;
 }
 </style>
